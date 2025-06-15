@@ -1,0 +1,167 @@
+/* 样式将在这里添加 */
+body {
+    font-family: sans-serif;
+    padding: 20px;
+    background-color: #f4f4f4; /* 添加背景色 */
+    color: #333; /* 默认文字颜色 */
+}
+
+h1 {
+    text-align: center;
+    color: #2a6496; /* 更改标题颜色 */
+    margin-bottom: 30px;
+}
+
+#app {
+    margin-top: 20px;
+    padding: 20px; /* 增加内边距 */
+    border: 1px solid #ccc;
+    border-radius: 8px; /* 增加圆角 */
+    background-color: #ffffff; /* 应用区域背景色 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 添加轻微阴影 */
+}
+
+h2, h3, h4, h5 {
+    color: #333;
+    margin-top: 1.5em; /* 增加标题间距 */
+}
+
+button {
+    padding: 8px 15px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px; /* 按钮间距 */
+    transition: background-color 0.3s ease; /* 平滑过渡效果 */
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+button:active {
+     background-color: #398439;
+}
+
+/* 删除按钮样式 */
+button[onclick*="delete"] {
+    background-color: #d9534f;
+}
+button[onclick*="delete"]:hover {
+    background-color: #c9302c;
+}
+button[onclick*="delete"]:active {
+    background-color: #ac2925;
+}
+
+
+input[type="text"],
+input[type="number"],
+input[type="date"] { /* 为将来可能添加的日期输入框预留样式 */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px; /* 输入框底部间距 */
+    min-width: 100px; /* 最小宽度 */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px; /* 增加单元格内边距 */
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2; /* 表头背景色 */
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9; /* 隔行变色 */
+}
+
+tbody tr:hover {
+    background-color: #e9e9e9; /* 鼠标悬停高亮 */
+}
+
+/* 周末表头和单元格高亮 */
+.weekend-header {
+    background-color: #e8f0fe !important; /* 浅蓝色背景 */
+    color: #1a73e8; /* 蓝色文字 */
+}
+
+.weekend-cell {
+    background-color: #f5f5f5; /* 非常浅的灰色背景 */
+}
+
+/* 排班表单元格样式微调 */
+#schedule-table th small { /* 星期几的小字 */
+    font-weight: normal;
+    color: #555;
+}
+#schedule-table td {
+    cursor: pointer; /* 提示单元格可点击 */
+    min-width: 50px; /* 避免单元格过窄 */
+    text-align: center; /* 居中显示内容 */
+    font-size: 0.9em; /* 稍小字体 */
+    padding: 5px 2px; /* 调整内边距 */
+    vertical-align: middle; /* 垂直居中 */
+}
+#schedule-table td select { /* 编辑时的下拉框 */
+    font-size: 0.9em;
+    padding: 2px;
+    max-width: 100px; /* 限制下拉框宽度 */
+    box-sizing: border-box; /* 确保 padding 不会撑大元素 */
+    display: block; /* 让下拉框占满单元格宽度 */
+    margin: 0 auto; /* 水平居中 */
+}
+
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background-color: #fff;
+    border: 1px solid #eee;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 20px 0;
+}
+
+/* 编辑器样式 */
+.editor-section {
+    display: none;
+    border: 1px solid #eee;
+    padding: 15px; /* 增加内边距 */
+    margin-top: 15px;
+    background-color: #fafafa; /* 编辑器背景色 */
+    border-radius: 5px;
+}
+
+/* 微调设置区域 */
+#settings-section > div {
+    margin-bottom: 30px; /* 各设置区域的间距 */
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #ccc; /* 用虚线分隔 */
+}
+#settings-section > div:last-child {
+    border-bottom: none; /* 最后一个区域不需要分隔线 */
+}

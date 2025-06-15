@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态路线规划器 (Google Maps)</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .location-marker {
+            display: inline-block;
+            width: 25px;
+            text-align: center;
+            margin-right: 8px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .input-group > label { /* For Start/End labels */
+            display: flex;
+            align-items: center;
+        }
+        .waypoint-entry .location-marker { /* For waypoint items */
+             /* Specific styles if needed, general .location-marker usually suffices */
+        }
+        #route-overview-panel {
+            line-height: 1.6;
+        }
+
+        #map {
+            height: 450px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input[type="text"],
+        .input-group textarea,
+        .input-group input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .waypoint-entry { /* Container for each waypoint input + remove button */
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .waypoint-input { /* Class for the dynamically added input fields */
+            flex-grow: 1;
+            margin-right: 8px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .button-add-waypoint, .button-remove-waypoint {
+            padding: 6px 10px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .button-add-waypoint {
+            background-color: #28a745; /* Green for add */
+            margin-top: 5px;
+        }
+        .button-add-waypoint:hover {
+            background-color: #218838;
+        }
+        .button-remove-waypoint {
+            background-color: #dc3545; /* Red for remove */
+            margin-left: 5px;
+        }
+        .button-remove-waypoint:hover {
+            background-color: #c82333;
+        }
+        .button-calculate {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .button-calculate:hover {
+            background-color: #0056b3;
+        }
+        #results-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        #results-summary p {
+            margin: 5px 0;
+        }
+        #directions-panel { /* For textual directions */
+            margin-top:10px;
+            padding:10px;
+            background-color:#fff;
+            border:1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>动态路线规划器 (Google Maps)</h1>
+
+        <div class="input-group">
+            <label for="start"><span class="location-marker" id="start-marker">A</span>起点地址:</label>
+            <input type="text" id="start" placeholder="例如: 新北市板橋區重慶路245巷50弄13號1樓" list="predefined-addresses">
+        </div>
+
+        <div class="input-group">
+            <label for="final-destination"><span class="location-marker" id="final-destination-marker">A</span>终点地址 (默认返回起点):</label>
+            <input type="text" id="final-destination" name="final-destination" placeholder="将默认为起点地址" list="predefined-addresses">
+        </div>
+
+        <div class="input-group">
+            <label>途经点 (可选):</label> <!-- This main label for waypoints section might not need a marker -->
+            <div id="waypoints-container">
+                <!-- Dynamically added waypoint inputs will go here -->
+            </div>
+            <button type="button" id="add-waypoint-btn" class="button-add-waypoint">+</button>
+        </div>
+
+        <div class="input-group">
+            <label for="stop-duration">每个停靠点停留时间 (分钟):</label>
+            <input type="number" id="stop-duration" value="10" min="0">
+        </div>
+
+        <button id="calculate-route-btn" class="button-calculate">计算路线</button>
+
+        <div id="map"></div>
+
+        <div id="results-summary">
+            <h3>路线规划结果:</h3>
+            <p id="total-distance"></p>
+            <p id="total-drive-time"></p>
+            <p id="total-stops"></p>
+            <p id="total-stop-time"></p>
+            <p id="overall-total-time"></p>
+            <div id="directions-panel"></div>
+        </div>
+    </div>
+
+    <datalist id="predefined-addresses">
+        <!-- Predefined addresses will be populated here by JavaScript -->
+    </datalist>
+
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+
+        // Global maps for address to marker and vice-versa
+        window.markerToAddressMap = {};
+        window.addressToMarkerMap = {};
+
+        function updateLocationLabels() {
+            window.markerToAddressMap = {}; // Reset maps
+            window.addressToMarkerMap = {};
+
+            const startInput = document.getElementById('start');
+            const finalDestinationInput = document.getElementById('final-destination');
+            
+            const startMarkerSpan = document.getElementById('start-marker');
+            const startAddress = startInput.value.trim();
+            if (startMarkerSpan) startMarkerSpan.textContent = 'A';
+            if (startAddress) {
+                window.markerToAddressMap['A'] = startAddress;
+                // Only map address to 'A' if it's not already mapped to another specific waypoint marker
+                if (!window.addressToMarkerMap[startAddress] || window.addressToMarkerMap[startAddress] === 'A') {
+                    window.addressToMarkerMap[startAddress] = 'A';
+                }
+            }
+
+            let currentWaypointCharCode = 'B'.charCodeAt(0);
+            const waypointInputs = document.querySelectorAll('#waypoints-container .waypoint-input');
+            waypointInputs.forEach((input, index) => {
+                const markerChar = String.fromCharCode(currentWaypointCharCode + index);
+                const waypointEntryDiv = input.closest('.waypoint-entry');
+                const markerSpanInEntry = waypointEntryDiv ? waypointEntryDiv.querySelector('.location-marker.waypoint-marker-item') : null;
+                
+                if (markerSpanInEntry) {
+                    markerSpanInEntry.textContent = markerChar;
+                }
+                const waypointAddress = input.value.trim();
+                if (waypointAddress) {
+                    window.markerToAddressMap[markerChar] = waypointAddress;
+                    // If address already mapped (e.g. to 'A'), don't overwrite with 'B', unless it's a new instance of this address as a waypoint
+                    if (!window.addressToMarkerMap[waypointAddress]) {
+                         window.addressToMarkerMap[waypointAddress] = markerChar;
+                    }
+                }
+            });
+
+            const finalDestinationMarkerSpan = document.getElementById('final-destination-marker');
+            const finalAddress = finalDestinationInput.value.trim();
+            let finalMarkerChar = String.fromCharCode(currentWaypointCharCode + waypointInputs.length);
+
+            if (finalAddress && startAddress && finalAddress === startAddress) {
+                finalMarkerChar = 'A';
+            }
+            if (finalDestinationMarkerSpan) finalDestinationMarkerSpan.textContent = finalMarkerChar;
+            
+            if (finalAddress) {
+                // If final marker is 'A' and it's genuinely the start address, mapping is already done by startAddress block.
+                // If final marker is not 'A', map it.
+                if (finalMarkerChar !== 'A') {
+                     window.markerToAddressMap[finalMarkerChar] = finalAddress;
+                     if (!window.addressToMarkerMap[finalAddress]) {
+                         window.addressToMarkerMap[finalAddress] = finalMarkerChar;
+                     }
+                } else if (finalAddress === startAddress) { // finalMarkerChar is 'A' and finalAddress is startAddress
+                    // Ensure 'A' is mapped to this address if not already (should be by startAddress block)
+                     if (!window.addressToMarkerMap[finalAddress]) {
+                        window.addressToMarkerMap[finalAddress] = 'A';
+                     }
+                     if (!window.markerToAddressMap['A']) {
+                        window.markerToAddressMap['A'] = finalAddress;
+                     }
+                }
+            }
+            // console.log("Updated M2A:", JSON.stringify(window.markerToAddressMap));
+            // console.log("Updated A2M:", JSON.stringify(window.addressToMarkerMap));
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 25.0170, lng: 121.4628 }, // Default to Banqiao, New Taipei City
+                zoom: 12
+            });
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            directionsRenderer.setMap(map);
+            directionsRenderer.setPanel(document.getElementById('directions-panel')); // Display textual directions
+
+            document.getElementById('calculate-route-btn').addEventListener('click', calculateAndDisplayRoute);
+            
+            const startInput = document.getElementById('start');
+            const finalDestinationInput = document.getElementById('final-destination');
+            let previousStartValue = startInput.value;
+
+            startInput.addEventListener('input', () => {
+                const currentStartValue = startInput.value;
+                if (finalDestinationInput.value === '' || finalDestinationInput.value === previousStartValue) {
+                    finalDestinationInput.value = currentStartValue;
+                }
+                previousStartValue = currentStartValue;
+                updateLocationLabels(); // Update labels on start input change
+            });
+
+            finalDestinationInput.addEventListener('input', updateLocationLabels); // Update labels on final destination input change
+            
+            const addWaypointBtn = document.getElementById('add-waypoint-btn');
+            addWaypointBtn.addEventListener('click', addNewWaypointInput);
+
+            // Initialize predefined addresses in datalist
+            const predefinedAddressesData = [
+                "新北市板桥区重庆路245巷50弄13號1楼",
+                "新北市板桥区五权街39號1楼",
+                "新北市板桥区國慶路167巷29號3楼",
+                "新北市板桥区新府路116號8楼",
+                "新北市板桥区四川路一段112號",
+                "新北市板桥区信義路18鄰信義路150巷1弄17之1號",
+                "新北市土城区廣興街75號4楼",
+                "新北市板桥区四川路二段245巷19弄38號8楼",
+                "新北市板桥区重庆路157號"
+            ];
+            const datalistElement = document.getElementById('predefined-addresses');
+            if (datalistElement) {
+                predefinedAddressesData.forEach(addr => {
+                    const option = document.createElement('option');
+                    option.value = addr;
+                    datalistElement.appendChild(option);
+                });
+            }
+
+            clearResults();
+            updateLocationLabels(); // Initial label setup after everything is ready
+        }
+
+        function addAddressToDatalistIfNotExists(address) {
+            if (!address || address.trim() === '') return;
+            const datalist = document.getElementById('predefined-addresses');
+            if (!datalist) return;
+
+            let exists = false;
+            for (let i = 0; i < datalist.options.length; i++) {
+                if (datalist.options[i].value === address) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                const option = document.createElement('option');
+                option.value = address;
+                datalist.appendChild(option);
+                console.log('地址已添加到建议列表:', address);
+            }
+        }
+
+        function addNewWaypointInput() {
+            const waypointsContainer = document.getElementById('waypoints-container');
+
+            const waypointEntryDiv = document.createElement('div');
+            waypointEntryDiv.className = 'waypoint-entry';
+
+            const markerSpan = document.createElement('span');
+            markerSpan.className = 'location-marker waypoint-marker-item';
+            waypointEntryDiv.appendChild(markerSpan);
+
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.className = 'waypoint-input';
+            newInput.placeholder = '输入途经点地址';
+            newInput.setAttribute('list', 'predefined-addresses');
+            newInput.addEventListener('input', updateLocationLabels); // Update labels when waypoint address changes
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'button-remove-waypoint';
+            removeBtn.textContent = '-';
+            removeBtn.title = '移除此途经点';
+            removeBtn.onclick = function() {
+                waypointsContainer.removeChild(waypointEntryDiv);
+                updateLocationLabels(); // Update labels after removing
+            };
+
+            waypointEntryDiv.appendChild(newInput);
+            waypointEntryDiv.appendChild(removeBtn);
+            waypointsContainer.appendChild(waypointEntryDiv);
+            updateLocationLabels(); // Update labels after adding a new waypoint input
+        }
+
+        function calculateAndDisplayRoute() {
+            updateLocationLabels(); // Ensure labels and maps are fresh before calculation
+            // console.log("Google Maps: 开始计算路线...");
+            clearResults();
+            const startAddress = document.getElementById('start').value.trim(); // Ensure trim
+            const finalDestinationAddress = document.getElementById('final-destination').value.trim(); // Ensure trim
+            
+            // Get waypoints from dynamically added input fields
+            const waypointInputElements = document.querySelectorAll('#waypoints-container .waypoint-input');
+            const waypointStrings = Array.from(waypointInputElements)
+                                         .map(input => input.value.trim())
+                                         .filter(addr => addr !== '');
+            
+            const stopDurationMinutes = parseInt(document.getElementById('stop-duration').value) || 0;
+
+            if (!startAddress) {
+                alert("请输入起点地址。");
+                return;
+            }
+
+            if (!finalDestinationAddress) { // New check
+                alert("请输入终点地址。");
+                return;
+            }
+
+            // const waypointStrings is now derived from dynamic inputs above
+
+            // Removed the check that waypointStrings cannot be empty.
+            // Waypoints are now optional intermediate stops.
+            
+            let requestOrigin = startAddress;
+            let requestDestination = finalDestinationAddress; // Changed
+            let requestWaypoints = [];
+
+            // All entries in waypointStrings are now intermediate waypoints
+            if (waypointStrings.length > 0) {
+                requestWaypoints = waypointStrings.map(addr => ({ location: addr, stopover: true }));
+            }
+            // If waypointStrings is empty, requestWaypoints remains [], which is correct.
+            
+            console.log("Google Maps: Request Origin:", requestOrigin);
+            console.log("Google Maps: Request Destination:", requestDestination);
+            console.log("Google Maps: Request Waypoints:", JSON.stringify(requestWaypoints));
+
+            directionsService.route(
+                {
+                    origin: requestOrigin,
+                    destination: requestDestination,
+                    waypoints: requestWaypoints,
+                    optimizeWaypoints: true, // 始终尝试优化
+                    travelMode: google.maps.TravelMode.DRIVING
+                },
+                (response, status) => {
+                    console.log("Google Maps: API Callback. Status:", status);
+                    if (status === 'OK') {
+                        console.log('Google Maps API Response:', JSON.stringify(response, null, 2)); // Full response
+                        if (response.routes && response.routes.length > 0 && response.routes[0].legs) {
+                             console.log('Google Maps: Number of legs in the route:', response.routes[0].legs.length);
+                        } else {
+                             console.log('Google Maps: Response does not contain routes or legs properly.');
+                        }
+
+                        // --- BEGIN: Display optimized route overview ---
+                        const directionsPanelForOverview = document.getElementById('directions-panel');
+                        let overviewPanel = document.getElementById('route-overview-panel');
+                        
+                        if (!overviewPanel && directionsPanelForOverview && directionsPanelForOverview.parentNode) {
+                            // 只有当 overviewPanel 不存在且能找到 directionsPanel 的父节点时才创建并插入
+                            overviewPanel = document.createElement('div');
+                            overviewPanel.id = 'route-overview-panel';
+                            overviewPanel.style.padding = '10px 0px';
+                            overviewPanel.style.marginBottom = '10px'; // 与下方的directions-panel隔开
+                            overviewPanel.style.borderBottom = '1px solid #ccc'; // 分隔线
+                            directionsPanelForOverview.parentNode.insertBefore(overviewPanel, directionsPanelForOverview);
+                        }
+
+                        if (overviewPanel) {
+                            const routeForOverview = response.routes[0];
+                            if (routeForOverview && routeForOverview.legs) {
+                                let overviewHTML = '<strong>优化后的路线概览：</strong><br>';
+                                
+                                const originMarker = 'A'; // Start is always 'A'
+                                const finalDestMarkerLabel = document.getElementById('final-destination-marker').textContent;
+                                
+                                const waypointMarkersFromInput = Array.from(document.querySelectorAll('#waypoints-container .waypoint-marker-item')).map(span => span.textContent);
+                                const waypointOrderIndices = routeForOverview.waypoint_order || [];
+
+                                let displayMarkerSequence = [originMarker];
+                                waypointOrderIndices.forEach(originalIndex => {
+                                    if (originalIndex < waypointMarkersFromInput.length) {
+                                        displayMarkerSequence.push(waypointMarkersFromInput[originalIndex]);
+                                    } else {
+                                        // This case should ideally not happen if waypoint_order is valid
+                                        displayMarkerSequence.push(`?${originalIndex}?`);
+                                    }
+                                });
+                                // Add final destination marker
+                                // Avoid adding if it's 'A' and sequence is just 'A' (start=end, no waypoints)
+                                if (!(displayMarkerSequence.length === 1 && displayMarkerSequence[0] === 'A' && finalDestMarkerLabel === 'A')) {
+                                     displayMarkerSequence.push(finalDestMarkerLabel);
+                                }
+
+                                // Filter out consecutive duplicates, but keep start and end if they are same for a round trip.
+                                // Example: A, B, B, C -> A, B, C.  A, B, A -> A, B, A. A,A (no waypoints) -> A
+                                let uniqueDisplayMarkerSequence = [];
+                                if (displayMarkerSequence.length > 0) {
+                                    uniqueDisplayMarkerSequence.push(displayMarkerSequence[0]);
+                                    for (let i = 1; i < displayMarkerSequence.length; i++) {
+                                        // Add if different from previous, OR if it's the last element and forms a round trip with the first
+                                        if (displayMarkerSequence[i] !== displayMarkerSequence[i-1] ||
+                                            (i === displayMarkerSequence.length - 1 && displayMarkerSequence[i] === displayMarkerSequence[0] && displayMarkerSequence.length > 1) ) {
+                                            uniqueDisplayMarkerSequence.push(displayMarkerSequence[i]);
+                                        }
+                                    }
+                                }
+                                // If after filtering, we only have one 'A' and it was a start=end with no waypoints, that's correct.
+                                // If start != end, and no waypoints, sequence should be [A, EndMarker]
+                                if (uniqueDisplayMarkerSequence.length === 1 && waypointOrderIndices.length === 0 && originMarker !== finalDestMarkerLabel){
+                                    // This means start is A, end is B, no waypoints. Sequence should be [A,B]
+                                    // This case should be handled by original displayMarkerSequence construction: [A, B]
+                                    // The filter might make it [A] if B was same as A (which is start=end)
+                                    // Let's re-evaluate: the displayMarkerSequence should be the primary source.
+                                    // The filter is mainly for internal waypoint optimization display.
+                                    // If the original sequence was just [A,A] (start=end, no waypoints), it should become [A]
+                                    if (displayMarkerSequence.length === 2 && displayMarkerSequence[0] === displayMarkerSequence[1] && waypointOrderIndices.length === 0) {
+                                        displayMarkerSequence = [displayMarkerSequence[0]];
+                                    }
+                                }
+
+
+                                if (displayMarkerSequence.length === 1) {
+                                    const marker = displayMarkerSequence[0];
+                                    const address = window.markerToAddressMap[marker] || "地址信息缺失";
+                                    overviewHTML += `${marker} (${address})`;
+                                } else {
+                                    for (let i = 0; i < displayMarkerSequence.length - 1; i++) {
+                                        const startM = displayMarkerSequence[i];
+                                        const endM = displayMarkerSequence[i+1];
+                                        
+                                        const startAddrDisplay = window.markerToAddressMap[startM] || startM; // Fallback to marker char
+                                        const endAddrDisplay = window.markerToAddressMap[endM] || endM;   // Fallback to marker char
+
+                                        overviewHTML += `${startM} (${startAddrDisplay}) → ${endM} (${endAddrDisplay})<br>`;
+                                    }
+                                }
+                                overviewPanel.innerHTML = overviewHTML;
+                            } else {
+                                if(overviewPanel) overviewPanel.innerHTML = '';
+                            }
+                        }
+                        // --- END: Display optimized route overview ---
+
+                        directionsRenderer.setDirections(response);
+                        displayRouteSummary(response, stopDurationMinutes);
+
+                        // Add used addresses to datalist for future suggestions
+                        addAddressToDatalistIfNotExists(document.getElementById('start').value.trim());
+                        addAddressToDatalistIfNotExists(document.getElementById('final-destination').value.trim());
+                        const waypointInputElementsForDatalist = document.querySelectorAll('#waypoints-container .waypoint-input');
+                        waypointInputElementsForDatalist.forEach(input => {
+                            addAddressToDatalistIfNotExists(input.value.trim());
+                        });
+
+                    } else {
+                        alert('Google Maps 路线计算失败，原因: ' + status);
+                        console.error('Google Maps Directions request failed due to ' + status, "Response:", response);
+                    }
+                }
+            );
+        }
+
+        function displayRouteSummary(response, stopDurationMinutes) {
+            let totalDistance = 0;
+            let totalDriveTimeSeconds = 0;
+            const route = response.routes[0]; 
+
+            if (!route || !route.legs) {
+                document.getElementById('total-distance').textContent = '未能规划路线。';
+                console.error("displayRouteSummary: Invalid route object in response", response);
+                return;
+            }
+
+            for (let i = 0; i < route.legs.length; i++) {
+                totalDistance += route.legs[i].distance.value;
+                totalDriveTimeSeconds += route.legs[i].duration.value;
+            }
+
+            // Number of intermediate stops is the number of waypoints in the request that were *not* the final destination.
+            // response.request.waypoints contains the processed intermediate waypoints.
+            const numberOfIntermediateStops = (response.request && response.request.waypoints) ? response.request.waypoints.length : 0;
+            
+            const totalStopTimeSeconds = numberOfIntermediateStops * stopDurationMinutes * 60;
+            const overallTotalTimeSeconds = totalDriveTimeSeconds + totalStopTimeSeconds;
+
+            document.getElementById('total-distance').textContent = `总距离: ${(totalDistance / 1000).toFixed(2)} km`;
+            document.getElementById('total-drive-time').textContent = `总行车时间: ${formatDuration(totalDriveTimeSeconds)}`;
+            document.getElementById('total-stops').textContent = `途经停靠点数量: ${numberOfIntermediateStops}`;
+            document.getElementById('total-stop-time').textContent = `总停靠时间: ${formatDuration(totalStopTimeSeconds)}`;
+            document.getElementById('overall-total-time').textContent = `总估算时间 (含停靠): ${formatDuration(overallTotalTimeSeconds)}`;
+        }
+        
+        function clearResults() {
+            document.getElementById('total-distance').textContent = '';
+            document.getElementById('total-drive-time').textContent = '';
+            document.getElementById('total-stops').textContent = '';
+            document.getElementById('total-stop-time').textContent = '';
+            document.getElementById('overall-total-time').textContent = '';
+            if (directionsRenderer) {
+                directionsRenderer.setDirections({routes: []}); 
+            }
+            const panel = document.getElementById('directions-panel');
+            if (panel) panel.innerHTML = '';
+        }
+
+        function formatDuration(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+
+            let durationString = '';
+            if (hours > 0) {
+                durationString += `${hours} 小时 `;
+            }
+            if (minutes > 0 || (hours > 0 && minutes === 0) ) {
+                durationString += `${minutes} 分钟 `;
+            }
+            if (totalSeconds > 0 || durationString === ''){
+                 durationString += `${seconds} 秒`;
+            }
+            return durationString.trim() || '0 秒';
+        }
+    </script>
+    <!-- 
+        确保将下面的 YOUR_API_KEY 替换为您的有效 Google Maps API Key。
+        您的API Key需要启用 "Maps JavaScript API" 和 "Directions API"。
+    -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCt9E-S7_tBPg-QDtoL_Im50BtzdZ5LlJI&callback=initMap&libraries=places,geometry"></script>
+</body>
+</html>

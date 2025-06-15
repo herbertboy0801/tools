@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师薪资管理系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>教师薪资管理系统</h1>
+
+    <div id="app">
+        <h2>欢迎使用教师薪资管理系统</h2>
+        <p>请选择您要进行的操作。</p>
+        <nav>
+            <button id="nav-settings">系统设置</button>
+            <button id="nav-schedule">排班与工时</button>
+            <button id="nav-payroll">薪资计算</button>
+        </nav>
+
+        <div id="settings-section" class="section-content" style="display: block;">
+            <!-- 系统设置内容将由 js/ui.js中的initSettingsUI() 填充 -->
+        </div>
+        <div id="schedule-section" class="section-content" style="display: none;">
+            <!-- 排班与工时内容将由 js/ui.js中的initScheduleUI() 填充 -->
+        </div>
+        <div id="payroll-section" class="section-content" style="display: none;">
+            <!-- 薪资计算内容将由 js/ui.js中的initPayrollUI() 填充 -->
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 960px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.schedule-plan {
+    background-color: #e9ecef;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+}
+
+.schedule-plan h2 {
+    margin-top: 0;
+    color: #495057;
+}
+
+.schedule-plan ol {
+    padding-left: 20px;
+}
+
+.schedule-plan li {
+    margin-bottom: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+p strong {
+    color: #d9534f;
+}
+
+.highlight {
+    font-weight: bold;
+    color: #007bff; /* Or any color you prefer for highlighting results */
+}
+
+.scheme-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.scheme {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 20px;
+    flex: 1;
+    min-width: 300px; /* Ensures schemes don't get too narrow */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.scheme h3 {
+    color: #007bff;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.scheme p {
+    margin-bottom: 10px;
+    font-size: 0.95em;
+}
+
+.scheme ol {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.scheme li {
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.scheme strong {
+    color: #343a40;
+}
+
+.button {
+    display: inline-block;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #218838;
+}
+
+#scheme-details-output {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+#scheme-details-output h4 {
+    margin-top: 0;
+    color: #495057;
+}
+
+.selected-scheme {
+    border-color: #007bff; /* Highlight border for selected scheme */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Add a more prominent shadow */
+}

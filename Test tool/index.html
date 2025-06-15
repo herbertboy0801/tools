@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试工具集</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px; /* Increased gap for better spacing */
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Corrected CSS syntax */
+        }
+        .card-image {
+            width: 100%;
+            height: 180px; /* Fixed height for image container */
+            background-color: #e9ecef; /* Placeholder background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Ensure image fits */
+        }
+        .card-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover; /* Cover the area, might crop */
+        }
+        .card-image .placeholder-icon {
+            font-size: 50px;
+            color: #adb5bd;
+        }
+        .card-content {
+            padding: 20px;
+            flex-grow: 1; /* Allow content to grow and push footer down */
+            display: flex;
+            flex-direction: column;
+        }
+        .card-content h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            color: #34495e;
+        }
+        .card-content p {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #555;
+            flex-grow: 1; /* Allow paragraph to take available space */
+            margin-bottom: 15px;
+        }
+        .card-action {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+        .card-action a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        .card-action a:hover {
+            background-color: #e9ecef;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>测试工具集</h1>
+    </div>
+    <div class="container">
+        <!-- 工具卡片1: 动态多停靠点路线规划器 -->
+        <div class="card">
+            <div class="card-image">
+                <!-- Placeholder for actual image or icon -->
+                <span class="placeholder-icon">🗺️</span>
+            </div>
+            <div class="card-content">
+                <h3>动态多停靠点路线规划器</h3>
+                <p>一个基于 Web 的工具，允许用户输入起点、终点和多个途经点，然后使用 Google Maps API 计算和显示优化的驾车路线。</p>
+            </div>
+            <div class="card-action">
+                <a href="./distance-calculator/index.html" target="_blank">查看工具</a>
+            </div>
+        </div>
+
+        <!-- 工具卡片2: 教师薪资管理系统 -->
+        <div class="card">
+            <div class="card-image">
+                 <!-- Placeholder for actual image or icon -->
+                <span class="placeholder-icon">💼</span>
+            </div>
+            <div class="card-content">
+                <h3>教师薪资管理系统</h3>
+                <p>一个用于管理教师信息、排班、工时，并自动计算薪资的系统。支持灵活设置时薪、课程时段和薪资规则。</p>
+            </div>
+            <div class="card-action">
+                <a href="./teacher-payroll-system/index.html" target="_blank">查看工具</a>
+            </div>
+        </div>
+
+        <!-- Add more cards here as new tools are developed -->
+        <!--
+        <div class="card">
+            <div class="card-image">
+                <span class="placeholder-icon">⚙️</span>
+            </div>
+            <div class="card-content">
+                <h3>新工具名称</h3>
+                <p>新工具的简短描述。</p>
+            </div>
+            <div class="card-action">
+                <a href="./new-tool/index.html" target="_blank">查看工具</a>
+            </div>
+        </div>
+        -->
+    </div>
+</body>
+</html>
