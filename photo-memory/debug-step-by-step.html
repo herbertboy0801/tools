@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逐步调试 - 照片墙</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>照片墙应用逐步调试</h1>
+    
+    <div class="debug-section">
+        <h2>步骤1: 检查基础HTML元素</h2>
+        <button onclick="checkElements()">检查元素</button>
+        <div id="elements-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>步骤2: 加载JavaScript文件</h2>
+        <button onclick="loadScripts()">加载脚本</button>
+        <div id="scripts-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>步骤3: 检查类定义</h2>
+        <button onclick="checkClasses()">检查类</button>
+        <div id="classes-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>步骤4: 初始化应用</h2>
+        <button onclick="initApp()">初始化应用</button>
+        <div id="app-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>步骤5: 测试认证</h2>
+        <button onclick="testAuth()">测试认证</button>
+        <div id="auth-status"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>调试日志</h2>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log"></div>
+    </div>
+
+    <!-- 基础HTML结构 -->
+    <div id="password-modal" class="hidden">
+        <div class="password-container">
+            <h2>请输入密码</h2>
+            <input type="password" id="password-input" placeholder="请输入密码">
+            <button id="password-submit">确认</button>
+            <div id="password-error"></div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <div id="loading" class="loading-overlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>正在加载照片墙...</p>
+            </div>
+        </div>
+        <div>主应用内容</div>
+    </div>
+
+    <style>
+        .hidden { display: none !important; }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-content {
+            text-align: center;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        let logElement;
+        let scriptsLoaded = false;
+        let app;
+        
+        function log(message, type = 'info') {
+            if (!logElement) {
+                logElement = document.getElementById('log');
+            }
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logEntry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'orange' : 'black';
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function setStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function checkElements() {
+            log('开始检查HTML元素...');
+            
+            const requiredElements = [
+                'password-modal',
+                'password-input', 
+                'password-submit',
+                'password-error',
+                'main-app',
+                'loading'
+            ];
+            
+            let allFound = true;
+            let results = [];
+            
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    results.push(`✓ ${id}`);
+                    log(`找到元素: ${id}`, 'success');
+                } else {
+                    results.push(`✗ ${id}`);
+                    log(`缺少元素: ${id}`, 'error');
+                    allFound = false;
+                }
+            });
+            
+            if (allFound) {
+                setStatus('elements-status', '所有必需元素都存在', 'success');
+                log('所有HTML元素检查通过', 'success');
+            } else {
+                setStatus('elements-status', '缺少必需元素: ' + results.join(', '), 'error');
+                log('HTML元素检查失败', 'error');
+            }
+        }
+        
+        function loadScripts() {
+            log('开始加载JavaScript文件...');
+            
+            const scripts = [
+                'js/persistence.js',
+                'js/auth.js',
+                'js/uploader.js',
+                'js/layoutEngine.js',
+                'js/controls.js',
+                'js/lightbox.js',
+                'js/shareExport.js',
+                'js/effects.js',
+                'js/main.js'
+            ];
+            
+            let loadedCount = 0;
+            let errors = [];
+            
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = () => {
+                        log(`脚本加载成功: ${src}`, 'success');
+                        resolve();
+                    };
+                    script.onerror = () => {
+                        log(`脚本加载失败: ${src}`, 'error');
+                        reject(new Error(`Failed to load ${src}`));
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+            
+            Promise.allSettled(scripts.map(loadScript))
+                .then(results => {
+                    const successful = results.filter(r => r.status === 'fulfilled').length;
+                    const failed = results.filter(r => r.status === 'rejected').length;
+                    
+                    if (failed === 0) {
+                        setStatus('scripts-status', `所有脚本加载成功 (${successful}/${scripts.length})`, 'success');
+                        log('所有JavaScript文件加载完成', 'success');
+                        scriptsLoaded = true;
+                    } else {
+                        setStatus('scripts-status', `部分脚本加载失败 (成功: ${successful}, 失败: ${failed})`, 'warning');
+                        log(`脚本加载完成，但有 ${failed} 个失败`, 'warning');
+                        scriptsLoaded = true; // 即使有失败也继续
+                    }
+                });
+        }
+        
+        function checkClasses() {
+            if (!scriptsLoaded) {
+                setStatus('classes-status', '请先加载脚本', 'warning');
+                return;
+            }
+            
+            log('开始检查类定义...');
+            
+            const requiredClasses = [
+                'PersistenceManager',
+                'AuthManager', 
+                'PhotoUploader',
+                'LayoutEngine',
+                'ControlsManager',
+                'LightboxManager',
+                'ShareExportManager',
+                'EffectsManager',
+                'PhotoWallApp'
+            ];
+            
+            let allDefined = true;
+            let results = [];
+            
+            requiredClasses.forEach(className => {
+                if (typeof window[className] === 'function') {
+                    results.push(`✓ ${className}`);
+                    log(`类定义正确: ${className}`, 'success');
+                } else {
+                    results.push(`✗ ${className}`);
+                    log(`类未定义: ${className}`, 'error');
+                    allDefined = false;
+                }
+            });
+            
+            if (allDefined) {
+                setStatus('classes-status', '所有类都已正确定义', 'success');
+                log('所有类定义检查通过', 'success');
+            } else {
+                setStatus('classes-status', '部分类未定义: ' + results.join(', '), 'error');
+                log('类定义检查失败', 'error');
+            }
+        }
+        
+        function initApp() {
+            if (!scriptsLoaded) {
+                setStatus('app-status', '请先加载脚本', 'warning');
+                return;
+            }
+            
+            log('开始初始化应用...');
+            
+            try {
+                if (typeof PhotoWallApp !== 'function') {
+                    throw new Error('PhotoWallApp类未定义');
+                }
+                
+                app = new PhotoWallApp();
+                setStatus('app-status', '应用初始化成功', 'success');
+                log('PhotoWallApp实例创建成功', 'success');
+                
+            } catch (error) {
+                setStatus('app-status', '应用初始化失败: ' + error.message, 'error');
+                log('应用初始化失败: ' + error.message, 'error');
+                console.error('应用初始化错误:', error);
+            }
+        }
+        
+        function testAuth() {
+            log('开始测试认证...');
+            
+            // 模拟输入密码
+            const passwordInput = document.getElementById('password-input');
+            if (passwordInput) {
+                passwordInput.value = 'love2024';
+                log('已输入测试密码', 'info');
+                
+                // 触发认证
+                if (app && app.modules && app.modules.auth) {
+                    app.modules.auth.validatePassword();
+                    log('已触发密码验证', 'info');
+                    setStatus('auth-status', '认证测试已触发', 'info');
+                } else {
+                    log('认证管理器未找到', 'error');
+                    setStatus('auth-status', '认证管理器未找到', 'error');
+                }
+            } else {
+                log('密码输入框未找到', 'error');
+                setStatus('auth-status', '密码输入框未找到', 'error');
+            }
+        }
+        
+        // 监听认证成功事件
+        document.addEventListener('authSuccess', () => {
+            log('收到authSuccess事件', 'success');
+            setStatus('auth-status', '认证成功事件已触发', 'success');
+        });
+        
+        // 页面加载完成后自动检查元素
+        window.addEventListener('load', () => {
+            log('页面加载完成', 'info');
+            checkElements();
+        });
+    </script>
+</body>
+</html>

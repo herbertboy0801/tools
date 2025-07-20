@@ -1,0 +1,17 @@
+{
+  "name": "wechat-summary-generator-server",
+  "version": "1.0.0",
+  "description": "Backend proxy server for AI analysis feature.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "author": "AI Assistant",
+  "license": "MIT"
+}

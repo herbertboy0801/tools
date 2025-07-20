@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "小红书评论抓取助手 (xiaohongshu-comment-exporter)",
+  "version": "1.0",
+  "description": "一键抓取小红书笔记页面的所有评论，并导出为JSON文件。",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.xiaohongshu.com/explore/*"],
+      "js": ["content/content_script.js"],
+      "css": ["content/content_style.css"]
+    }
+  ]
+}

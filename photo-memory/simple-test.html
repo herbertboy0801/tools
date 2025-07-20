@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>照片墙应用简单测试</h1>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        // 捕获错误
+        window.addEventListener('error', (e) => {
+            log(`JavaScript错误: ${e.message} (${e.filename}:${e.lineno})`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            log(`Promise错误: ${e.reason}`, 'error');
+        });
+
+        // 测试步骤
+        log('开始测试...');
+        
+        // 1. 测试基本DOM
+        setTimeout(() => {
+            log('1. 测试基本DOM结构');
+            const body = document.body;
+            if (body) {
+                log('✓ DOM基本结构正常', 'success');
+            } else {
+                log('✗ DOM基本结构异常', 'error');
+            }
+        }, 100);
+
+        // 2. 加载第一个脚本
+        setTimeout(() => {
+            log('2. 加载persistence.js');
+            const script1 = document.createElement('script');
+            script1.src = 'js/persistence.js';
+            script1.onload = () => {
+                log('✓ persistence.js加载成功', 'success');
+                if (window.PersistenceManager) {
+                    log('✓ PersistenceManager类可用', 'success');
+                } else {
+                    log('✗ PersistenceManager类不可用', 'error');
+                }
+            };
+            script1.onerror = () => {
+                log('✗ persistence.js加载失败', 'error');
+            };
+            document.head.appendChild(script1);
+        }, 500);
+
+        // 3. 加载第二个脚本
+        setTimeout(() => {
+            log('3. 加载auth.js');
+            const script2 = document.createElement('script');
+            script2.src = 'js/auth.js';
+            script2.onload = () => {
+                log('✓ auth.js加载成功', 'success');
+                if (window.AuthManager) {
+                    log('✓ AuthManager类可用', 'success');
+                } else {
+                    log('✗ AuthManager类不可用', 'error');
+                }
+            };
+            script2.onerror = () => {
+                log('✗ auth.js加载失败', 'error');
+            };
+            document.head.appendChild(script2);
+        }, 1000);
+
+        // 4. 加载其他脚本
+        setTimeout(() => {
+            log('4. 加载其他模块');
+            const scripts = [
+                'js/uploader.js',
+                'js/layoutEngine.js',
+                'js/controls.js',
+                'js/lightbox.js',
+                'js/shareExport.js',
+                'js/effects.js'
+            ];
+            
+            let loadedCount = 0;
+            scripts.forEach((src, index) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    loadedCount++;
+                    log(`✓ ${src}加载成功`, 'success');
+                    if (loadedCount === scripts.length) {
+                        log('✓ 所有模块脚本加载完成', 'success');
+                        // 最后加载main.js
+                        setTimeout(loadMainScript, 500);
+                    }
+                };
+                script.onerror = () => {
+                    log(`✗ ${src}加载失败`, 'error');
+                };
+                document.head.appendChild(script);
+            });
+        }, 1500);
+
+        function loadMainScript() {
+            log('5. 加载main.js');
+            const mainScript = document.createElement('script');
+            mainScript.src = 'js/main.js';
+            mainScript.onload = () => {
+                log('✓ main.js加载成功', 'success');
+                if (window.PhotoWallApp) {
+                    log('✓ PhotoWallApp类可用', 'success');
+                    // 尝试创建实例
+                    setTimeout(testAppCreation, 500);
+                } else {
+                    log('✗ PhotoWallApp类不可用', 'error');
+                }
+            };
+            mainScript.onerror = () => {
+                log('✗ main.js加载失败', 'error');
+            };
+            document.head.appendChild(mainScript);
+        }
+
+        function testAppCreation() {
+            log('6. 测试应用实例创建');
+            try {
+                // 先创建必要的DOM元素
+                const passwordModal = document.createElement('div');
+                passwordModal.id = 'password-modal';
+                passwordModal.innerHTML = `
+                    <div class="password-container">
+                        <input type="password" id="password-input" placeholder="请输入密码">
+                        <button id="password-submit">确认</button>
+                        <div id="password-error"></div>
+                    </div>
+                `;
+                document.body.appendChild(passwordModal);
+
+                const mainApp = document.createElement('div');
+                mainApp.id = 'main-app';
+                mainApp.className = 'hidden';
+                mainApp.innerHTML = `
+                    <div id="photo-container"></div>
+                    <div id="control-panel"></div>
+                `;
+                document.body.appendChild(mainApp);
+
+                log('✓ 必要DOM元素已创建', 'success');
+
+                // 创建应用实例
+                window.app = new PhotoWallApp();
+                log('✓ PhotoWallApp实例创建成功', 'success');
+                
+                // 检查实例状态
+                setTimeout(() => {
+                    if (window.app.isInitialized) {
+                        log('✓ 应用初始化完成', 'success');
+                    } else {
+                        log('⚠ 应用仍在初始化中...', 'warning');
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                log(`✗ 应用实例创建失败: ${error.message}`, 'error');
+                console.error('详细错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>

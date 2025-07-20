@@ -1,0 +1,148 @@
+#xhs-exporter-panel {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 280px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    z-index: 9999;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+#xhs-exporter-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+}
+
+#xhs-exporter-panel .section-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+}
+
+#xhs-exporter-panel .note-overview {
+    display: flex;
+    justify-content: space-around;
+    font-size: 13px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#xhs-exporter-panel .note-overview span {
+    font-weight: bold;
+    color: #d9534f;
+}
+
+#xhs-exporter-panel .stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+}
+
+#xhs-exporter-panel .stat-item {
+    text-align: center;
+}
+
+#xhs-exporter-panel .stat-item .value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #d9534f;
+}
+
+#xhs-exporter-panel .stat-item .label {
+    font-size: 12px;
+    color: #777;
+}
+
+#xhs-exporter-panel .top-comment {
+    font-size: 12px;
+    padding: 8px;
+    background-color: #fdf8e2;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    min-height: 40px;
+}
+
+#xhs-exporter-panel .top-comment p {
+    margin: 4px 0 0 0;
+    word-wrap: break-word;
+}
+
+#xhs-exporter-panel .status-bar {
+    margin-bottom: 15px;
+    padding: 8px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    background-color: #5cb85c; /* Green for success */
+    display: none; /* Initially hidden */
+}
+
+#xhs-exporter-panel .status-bar.error {
+    background-color: #d9534f; /* Red for error */
+}
+
+#xhs-exporter-panel .status-bar.info {
+    background-color: #5bc0de; /* Blue for info */
+}
+
+
+#xhs-exporter-panel button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#xhs-exporter-panel button#scrape-btn {
+    background-color: #d9534f;
+    color: white;
+}
+
+#xhs-exporter-panel button#scrape-btn:hover {
+    background-color: #c9302c;
+}
+
+#xhs-exporter-panel button#export-btn {
+    background-color: #337ab7;
+    color: white;
+}
+
+#xhs-exporter-panel button#export-btn:hover {
+    background-color: #286090;
+}
+
+#xhs-exporter-panel button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#xhs-exporter-panel .progress-log {
+    font-size: 12px;
+    color: #888;
+    height: 100px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 5px;
+    background: #fafafa;
+    border-radius: 4px;
+}

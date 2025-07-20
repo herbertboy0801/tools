@@ -1,0 +1,435 @@
+/* 响应式设计 */
+
+/* 桌面端 (min-width: 1025px) */
+@media (min-width: 1025px) {
+    .main-content {
+        flex-direction: row;
+    }
+    
+    .control-panel {
+        position: relative;
+        transform: translateX(0);
+    }
+    
+    .photo-wall {
+        padding: var(--spacing-xl);
+    }
+    
+    .lightbox-info {
+        display: block;
+    }
+}
+
+/* 平板端 (min-width: 769px) and (max-width: 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+        flex-direction: row;
+    }
+    
+    .control-panel {
+        width: 300px;
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .photo-wall {
+        padding: var(--spacing-lg);
+    }
+    
+    .grid-25 {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+    }
+    
+    .lightbox-info {
+        right: -350px;
+        width: 300px;
+    }
+}
+
+/* 移动端 (max-width: 768px) */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .header {
+        padding: var(--spacing-sm) var(--spacing-md);
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .header-right {
+        flex-shrink: 0;
+    }
+    
+    .photo-wall {
+        padding: var(--spacing-md);
+        order: 1;
+    }
+    
+    .photo-container {
+        min-height: 400px;
+    }
+    
+    /* 设置面板变为底部抽屉 */
+    .control-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 60vh;
+        max-height: 500px;
+        transform: translateY(100%);
+        transition: transform var(--transition-smooth);
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+        z-index: 200;
+        order: 2;
+    }
+    
+    .control-panel.open {
+        transform: translateY(0);
+    }
+    
+    .panel-header {
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .panel-header::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 2px;
+    }
+    
+    /* 简化网格布局 */
+    .grid-9 {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+    
+    .grid-16 {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+    
+    .grid-25 {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+    
+    /* 布局选择按钮 */
+    .layout-options {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
+    }
+    
+    .layout-btn {
+        padding: var(--spacing-md);
+        font-size: 16px;
+    }
+    
+    /* 全屏浏览器适配 */
+    .lightbox-content {
+        flex-direction: column;
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    .lightbox-image-container {
+        max-width: 90vw;
+        max-height: 60vh;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .lightbox-info {
+        position: relative;
+        right: auto;
+        top: auto;
+        width: 100%;
+        height: auto;
+        max-height: 30vh;
+        border-radius: var(--border-radius-md);
+    }
+    
+    .lightbox-close {
+        top: -40px;
+        right: -20px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .lightbox-nav {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .lightbox-prev {
+        left: -60px;
+    }
+    
+    .lightbox-next {
+        right: -60px;
+    }
+    
+    /* 模态框适配 */
+    .modal-content {
+        width: 95%;
+        margin: var(--spacing-md);
+    }
+    
+    .password-container {
+        width: 95%;
+        padding: var(--spacing-lg);
+    }
+    
+    .password-container h2 {
+        font-size: 2rem;
+    }
+    
+    .password-input-group {
+        flex-direction: column;
+    }
+    
+    .password-input-group input {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    /* 照片项适配 */
+    .photo-item {
+        min-height: 150px;
+    }
+    
+    .photo-item:hover {
+        transform: scale(1.02);
+    }
+    
+    /* 心形布局简化 */
+    .heart-layout .photo-item {
+        position: absolute;
+    }
+    
+    /* 旋转相册适配 */
+    .carousel-container {
+        width: 250px;
+        height: 250px;
+    }
+    
+    /* 表单控件适配 */
+    .panel-section input,
+    .panel-section select,
+    .panel-section textarea {
+        font-size: 16px; /* 防止iOS缩放 */
+        padding: var(--spacing-md);
+    }
+    
+    /* 按钮适配 */
+    .btn-primary,
+    .btn-secondary {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 16px;
+        min-height: 44px; /* 触摸友好 */
+    }
+    
+    .icon-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: var(--spacing-md);
+    }
+    
+    /* 照片列表适配 */
+    .photo-list-item {
+        padding: var(--spacing-md);
+    }
+    
+    .photo-list-item img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    /* 分享链接容器适配 */
+    .share-link-container {
+        flex-direction: column;
+    }
+    
+    .share-link-container input {
+        margin-bottom: var(--spacing-sm);
+        font-size: 14px;
+    }
+}
+
+/* 超小屏幕 (max-width: 480px) */
+@media (max-width: 480px) {
+    .header {
+        padding: var(--spacing-sm);
+    }
+    
+    .header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .photo-wall {
+        padding: var(--spacing-sm);
+    }
+    
+    .photo-container {
+        min-height: 300px;
+        gap: var(--spacing-sm);
+    }
+    
+    .grid-9,
+    .grid-16,
+    .grid-25 {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .photo-item {
+        min-height: 200px;
+    }
+    
+    .control-panel {
+        height: 70vh;
+    }
+    
+    .panel-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .panel-section {
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+    }
+    
+    .lightbox-image-container {
+        max-height: 50vh;
+    }
+    
+    .lightbox-info {
+        max-height: 40vh;
+        padding: var(--spacing-md);
+    }
+    
+    .carousel-container {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .password-container h2 {
+        font-size: 1.8rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.2rem;
+    }
+    
+    .empty-state p {
+        font-size: 14px;
+    }
+}
+
+/* 横屏模式优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .control-panel {
+        height: 80vh;
+    }
+    
+    .lightbox-image-container {
+        max-height: 70vh;
+    }
+    
+    .lightbox-info {
+        max-height: 25vh;
+    }
+    
+    .photo-container {
+        min-height: 250px;
+    }
+}
+
+/* 高分辨率屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .photo-item img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* 减少动画的用户偏好 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .carousel-container {
+        animation: none;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --bg-modal: rgba(0, 0, 0, 0.8);
+    }
+    
+    .photo-item {
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+    }
+    
+    .panel-section input,
+    .panel-section select,
+    .panel-section textarea {
+        background: #3a3a3a;
+        color: #ffffff;
+        border-color: #555555;
+    }
+    
+    .photo-list-item {
+        background: #3a3a3a;
+        border-color: #555555;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    .header,
+    .control-panel,
+    .lightbox,
+    .modal {
+        display: none !important;
+    }
+    
+    .photo-wall {
+        padding: 0;
+    }
+    
+    .photo-container {
+        break-inside: avoid;
+    }
+    
+    .photo-item {
+        break-inside: avoid;
+        box-shadow: none;
+    }
+}

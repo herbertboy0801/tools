@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f5a623;
+    --background-color: #f4f6f8;
+    --light-grey: #e8e8e8;
+    --dark-grey: #a0a0a0;
+    --font-color: #333;
+    --white: #fff;
+    --red-error: #e74c3c;
+    --board-border: #ccc;
+    --cell-fixed-bg: #f0f0f0;
+    --cell-selected-bg: #d9e9f9;
+    --cell-highlight-bg: #eef5fc;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: var(--background-color);
+    color: var(--font-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+header h1 span {
+    font-size: 1.5rem;
+    color: var(--dark-grey);
+    font-weight: 400;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: var(--dark-grey);
+    max-width: 450px;
+    margin: 0.5rem auto 0;
+}
+
+.game-area {
+    display: flex;
+    gap: 2rem;
+}
+
+.controls {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.panel {
+    background-color: var(--background-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.panel h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--light-grey);
+    padding-bottom: 0.5rem;
+}
+
+.game-progress .progress-info {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.progress-info p:first-child {
+    color: var(--dark-grey);
+    font-size: 0.9rem;
+}
+
+.progress-info p:last-child {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.difficulty {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#difficulty-select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid var(--light-grey);
+    font-size: 1rem;
+}
+
+.game-instructions ul {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+.game-instructions li {
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.action-buttons #btn-show-solution {
+    grid-column: 1 / -1;
+}
+
+button {
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: inherit;
+    font-weight: bold;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#btn-new-game, #btn-check {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+#btn-new-game:hover, #btn-check:hover {
+    background-color: #3a80d2;
+}
+
+#btn-hint {
+    background-color: var(--secondary-color);
+    color: var(--white);
+}
+#btn-hint:hover {
+    background-color: #e59613;
+}
+
+#btn-show-solution, #btn-clear {
+    background-color: var(--light-grey);
+    color: var(--font-color);
+}
+#btn-show-solution:hover, #btn-clear:hover {
+    background-color: #dcdcdc;
+}
+
+.game-board-area {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.board-header h2 {
+    font-size: 1.2rem;
+}
+
+.board-header div {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sudoku-board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 100%;
+    max-width: 450px;
+    aspect-ratio: 1 / 1;
+    border: 3px solid var(--board-border);
+    border-radius: 5px;
+    margin: 0 auto;
+}
+
+.sudoku-board .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    border: 1px solid var(--light-grey);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sudoku-board .cell:nth-child(3n) {
+    border-right: 2px solid var(--board-border);
+}
+.sudoku-board .cell:nth-child(9n) {
+    border-right: none;
+}
+.sudoku-board tr:nth-child(3n) .cell {
+    border-bottom: 2px solid var(--board-border);
+}
+
+/* This is a bit tricky with grid, will apply borders with JS or more specific selectors */
+.cell.border-right { border-right: 2px solid var(--board-border) !important; }
+.cell.border-bottom { border-bottom: 2px solid var(--board-border) !important; }
+
+
+.cell.fixed {
+    background-color: var(--cell-fixed-bg);
+    font-weight: bold;
+    cursor: not-allowed;
+}
+
+.cell.selected {
+    background-color: var(--cell-selected-bg) !important;
+}
+
+.cell.highlight {
+    background-color: var(--cell-highlight-bg);
+}
+
+.cell.error {
+    color: var(--red-error);
+}
+
+.number-pad {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 5px;
+    margin: 1.5rem auto 0;
+    width: 100%;
+    max-width: 450px;
+}
+
+.number-pad .num {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    background: var(--white);
+    border: 1px solid var(--light-grey);
+    border-radius: 5px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.number-pad .num:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+@media (max-width: 768px) {
+    .game-area {
+        flex-direction: column;
+    }
+    .container {
+        padding: 1rem;
+    }
+    header h1 {
+        font-size: 2rem;
+    }
+}

@@ -1,0 +1,10 @@
+Metadata-Version: 2.3
+Name: pyrsca
+Version: 0.1.2
+Classifier: Programming Language :: Rust
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Dist: pytest ; extra == 'dev'
+Requires-Dist: pytest-dotenv ; extra == 'dev'
+Provides-Extra: dev
+Requires-Python: >=3.6

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最终测试 - 照片墙应用</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-warning { background: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>照片墙应用 - 最终测试</h1>
+        
+        <div id="test-results">
+            <div class="test-section info">
+                <h3>🔍 正在进行最终测试...</h3>
+                <p>检查应用是否能正常加载和初始化</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🛠️ 测试控制</h3>
+            <button onclick="runFullTest()">重新运行完整测试</button>
+            <button onclick="checkAppStatus()">检查应用状态</button>
+            <button onclick="openMainApp()">打开主应用</button>
+            <button onclick="clearLogs()">清除日志</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 测试日志</h3>
+            <div id="test-log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let testLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testLog.push(logEntry);
+            
+            const logElement = document.getElementById('test-log');
+            logElement.textContent = testLog.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function updateTestResult(title, status, message, details = '') {
+            const resultsDiv = document.getElementById('test-results');
+            const statusClass = status === 'success' ? 'success' : status === 'error' ? 'error' : 'info';
+            const statusIndicator = status === 'success' ? 'status-success' : status === 'error' ? 'status-error' : 'status-warning';
+            
+            resultsDiv.innerHTML = `
+                <div class="test-section ${statusClass}">
+                    <h3><span class="status-indicator ${statusIndicator}"></span>${title}</h3>
+                    <p>${message}</p>
+                    ${details ? `<div class="log">${details}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        async function runFullTest() {
+            log('开始运行完整测试...');
+            clearLogs();
+            
+            try {
+                // 测试2: 检查JavaScript类定义
+                log('测试1: 检查JavaScript类定义');
+                const requiredClasses = [
+                    'PhotoWallApp', 'PersistenceManager', 'AuthManager', 
+                    'PhotoUploader', 'LayoutEngine', 'ControlsManager',
+                    'LightboxManager', 'ShareExportManager', 'EffectsManager'
+                ];
+                
+                const missingClasses = [];
+                requiredClasses.forEach(className => {
+                    if (typeof window[className] !== 'function') {
+                        missingClasses.push(className);
+                    }
+                });
+                
+                if (missingClasses.length > 0) {
+                    throw new Error(`缺少类定义: ${missingClasses.join(', ')}`);
+                }
+                log('✓ 所有必需的类都已定义');
+                
+                // 测试3: 创建应用实例
+                log('测试2: 创建应用实例');
+                if (!window.testApp) {
+                    window.testApp = new PhotoWallApp();
+                    log('✓ 应用实例创建成功');
+                } else {
+                    log('✓ 使用现有应用实例');
+                }
+                
+                // 测试4: 初始化应用
+                log('测试3: 初始化应用');
+                await window.testApp.init();
+                log('✓ 应用初始化完成');
+                
+                // 测试5: 检查应用状态
+                log('测试4: 检查应用状态');
+                const appState = window.testApp.getAppState();
+                log(`应用状态: ${JSON.stringify(appState, null, 2)}`);
+                
+                if (appState.isInitialized) {
+                    updateTestResult(
+                        '🎉 测试成功！', 
+                        'success', 
+                        '照片墙应用已成功加载和初始化！',
+                        `模块数量: ${appState.modules.length}\n照片数量: ${appState.photosCount}\n当前布局: ${appState.currentLayout || '默认'}\n当前特效: ${appState.currentEffect || '无'}`
+                    );
+                    log('🎉 所有测试通过！应用运行正常');
+                } else {
+                    throw new Error('应用未正确初始化');
+                }
+                
+            } catch (error) {
+                log(`❌ 测试失败: ${error.message}`);
+                log(`错误堆栈: ${error.stack}`);
+                updateTestResult(
+                    '❌ 测试失败', 
+                    'error', 
+                    `应用加载失败: ${error.message}`,
+                    error.stack
+                );
+            }
+        }
+        
+        function checkAppStatus() {
+            if (window.testApp) {
+                const state = window.testApp.getAppState();
+                log(`当前应用状态: ${JSON.stringify(state, null, 2)}`);
+            } else {
+                log('❌ 应用实例不存在');
+            }
+        }
+        
+        function openMainApp() {
+            window.open('/', '_blank');
+        }
+        
+        function clearLogs() {
+            testLog = [];
+            document.getElementById('test-log').textContent = '';
+        }
+        
+        // 页面加载完成后自动运行测试
+        document.addEventListener('DOMContentLoaded', () => {
+            log('页面加载完成，开始自动测试...');
+            
+            // 加载所有必需的脚本
+            const scripts = [
+                'js/persistence.js',
+                'js/auth.js', 
+                'js/uploader.js',
+                'js/layoutEngine.js',
+                'js/controls.js',
+                'js/lightbox.js',
+                'js/shareExport.js',
+                'js/effects.js',
+                'js/main.js'
+            ];
+            
+            let loadedScripts = 0;
+            
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    loadedScripts++;
+                    log(`✓ 已加载: ${src}`);
+                    
+                    if (loadedScripts === scripts.length) {
+                        log('所有脚本加载完成，开始测试...');
+                        setTimeout(runFullTest, 1000);
+                    }
+                };
+                script.onerror = () => {
+                    log(`❌ 加载失败: ${src}`);
+                };
+                document.head.appendChild(script);
+            });
+        });
+    </script>
+</body>
+</html>

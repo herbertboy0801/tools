@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面 - 照片墙应用</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .module-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #ddd;
+        }
+        .module-status.loading {
+            border-left-color: #ffa500;
+            background: #fff3cd;
+        }
+        .module-status.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .module-status.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .error-details {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>照片墙应用调试页面</h1>
+        <p>正在逐步加载和检查各个模块...</p>
+        
+        <div id="module-status-container"></div>
+        
+        <div class="console-output" id="console-output">
+            <div>调试控制台输出:</div>
+        </div>
+        
+        <button onclick="startApp()" id="start-app-btn" style="display:none; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">启动应用</button>
+    </div>
+
+    <script>
+        const modules = [
+            { name: 'PersistenceManager', file: 'js/persistence.js' },
+            { name: 'AuthManager', file: 'js/auth.js' },
+            { name: 'PhotoUploader', file: 'js/uploader.js' },
+            { name: 'LayoutEngine', file: 'js/layoutEngine.js' },
+            { name: 'ControlsManager', file: 'js/controls.js' },
+            { name: 'LightboxManager', file: 'js/lightbox.js' },
+            { name: 'ShareExportManager', file: 'js/shareExport.js' },
+            { name: 'EffectsManager', file: 'js/effects.js' },
+            { name: 'PhotoWallApp', file: 'js/main.js' }
+        ];
+        
+        let loadedModules = 0;
+        let hasErrors = false;
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#4ecdc4' : '#0f0';
+            output.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function updateModuleStatus(moduleName, status, error = null) {
+            const container = document.getElementById('module-status-container');
+            let statusDiv = document.getElementById(`status-${moduleName}`);
+            
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = `status-${moduleName}`;
+                statusDiv.className = 'module-status';
+                container.appendChild(statusDiv);
+            }
+            
+            statusDiv.className = `module-status ${status}`;
+            
+            let content = `<strong>${moduleName}</strong>: `;
+            switch(status) {
+                case 'loading':
+                    content += '加载中...';
+                    break;
+                case 'success':
+                    content += '✓ 加载成功';
+                    break;
+                case 'error':
+                    content += '✗ 加载失败';
+                    if (error) {
+                        content += `<div class="error-details">${error}</div>`;
+                    }
+                    break;
+            }
+            
+            statusDiv.innerHTML = content;
+        }
+        
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error(`Failed to load ${src}`));
+                document.head.appendChild(script);
+            });
+        }
+        
+        async function loadModules() {
+            log('开始加载模块...');
+            
+            for (const module of modules) {
+                try {
+                    log(`正在加载 ${module.name}...`);
+                    updateModuleStatus(module.name, 'loading');
+                    
+                    await loadScript(module.file);
+                    
+                    // 检查模块是否正确定义
+                    if (window[module.name]) {
+                        log(`${module.name} 加载成功`, 'success');
+                        updateModuleStatus(module.name, 'success');
+                        loadedModules++;
+                    } else {
+                        throw new Error(`${module.name} 类未定义`);
+                    }
+                    
+                    // 添加小延迟以便观察加载过程
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                } catch (error) {
+                    log(`${module.name} 加载失败: ${error.message}`, 'error');
+                    updateModuleStatus(module.name, 'error', error.message);
+                    hasErrors = true;
+                }
+            }
+            
+            log(`模块加载完成。成功: ${loadedModules}/${modules.length}`);
+            
+            if (!hasErrors && loadedModules === modules.length) {
+                log('所有模块加载成功！可以启动应用。', 'success');
+                document.getElementById('start-app-btn').style.display = 'block';
+            } else {
+                log('存在加载错误，请检查上述问题。', 'error');
+            }
+        }
+        
+        function startApp() {
+            try {
+                log('正在启动应用...');
+                
+                // 创建应用实例
+                window.photoWallApp = new PhotoWallApp();
+                
+                log('应用启动成功！', 'success');
+                
+                // 跳转到主应用
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+                
+            } catch (error) {
+                log(`应用启动失败: ${error.message}`, 'error');
+                console.error('应用启动错误:', error);
+            }
+        }
+        
+        // 捕获全局错误
+        window.addEventListener('error', (event) => {
+            log(`全局错误: ${event.error.message}`, 'error');
+            console.error('全局错误:', event.error);
+        });
+        
+        // 开始加载
+        loadModules();
+    </script>
+</body>
+</html>

@@ -703,9 +703,12 @@ function initPayrollUI() {
                 <p>选择月份和教师以查看薪资签到表。</p>
                 <!-- 薪资签到表将在这里渲染 -->
             </div>
-            <div id="payroll-report-section" style="margin-top: 20px;">
-                <h4>薪资报表 (待开发)</h4>
-                <button disabled>生成报表</button>
+            <div id="payroll-report-section" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+                <h4>月度薪资总报表</h4>
+                <p>点击下方按钮，为当前选择的月份 <strong>(<span id="report-month-display"></span>)</strong> 生成所有教师的薪资汇总报表。</p>
+                <button onclick="generateMonthlyPayrollReport()">生成月度报表</button>
+                <button id="export-csv-button" onclick="exportPayrollReportAsCSV()" disabled>导出为 CSV</button>
+                <div id="payroll-report-view" style="margin-top: 15px;"></div>
             </div>
         `;
         // 填充教师选择器
@@ -730,7 +733,18 @@ function initPayrollUI() {
                 }
             }
         }
-        // calculateAndDisplayPayroll(); // 已移到上面条件块中
+
+        // 更新报表月份显示
+        const reportMonthDisplay = document.getElementById('report-month-display');
+        if(reportMonthDisplay) {
+            const monthSelect = document.getElementById('payroll-month-select');
+            reportMonthDisplay.textContent = monthSelect.value;
+            monthSelect.addEventListener('change', () => {
+                reportMonthDisplay.textContent = monthSelect.value;
+                document.getElementById('payroll-report-view').innerHTML = ''; // 月份切换时清空旧报表
+                document.getElementById('export-csv-button').disabled = true; // 禁用导出按钮
+            });
+        }
     } else {
         console.error("Payroll section not found!");
     }
@@ -2144,4 +2158,129 @@ function saveWeeklyDefaultSchedule(teacherId) {
     if (scheduleSettingsDiv && scheduleSettingsDiv.style.display !== 'none') {
         toggleScheduleSettings(teacherId); // 调用一次以关闭
     }
+}
+/**
+ * 生成并显示指定月份所有教师的薪资汇总报表
+ */
+function generateMonthlyPayrollReport() {
+    const monthSelect = document.getElementById('payroll-month-select');
+    const selectedMonth = monthSelect.value;
+    const reportView = document.getElementById('payroll-report-view');
+    const exportButton = document.getElementById('export-csv-button');
+
+    if (!selectedMonth || !reportView) {
+        alert('无法找到月份选择器或报表显示区域。');
+        return;
+    }
+
+    console.log(`Generating payroll report for month: ${selectedMonth}`);
+
+    const allTeachers = getData(STORAGE_KEYS.TEACHERS, []) || [];
+    const allPayslips = getData(STORAGE_KEYS.PAYSLIPS, {})[selectedMonth] || {};
+
+    if (allTeachers.length === 0) {
+        reportView.innerHTML = '<p>系统中没有教师数据。</p>';
+        return;
+    }
+
+    let reportHtml = `
+        <table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+            <thead>
+                <tr>
+                    <th>教师ID</th>
+                    <th>教师姓名</th>
+                    <th>本月工时薪资 (元)</th>
+                    <th>调整金额 (元)</th>
+                    <th>最终薪资 (元)</th>
+                    <th>状态</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    let hasData = false;
+    allTeachers.forEach(teacher => {
+        const payslip = allPayslips[teacher.id];
+        if (payslip) {
+            hasData = true;
+            reportHtml += `
+                <tr>
+                    <td>${teacher.id}</td>
+                    <td>${teacher.name}</td>
+                    <td>${(payslip.calculatedSalary || 0).toFixed(2)}</td>
+                    <td>${(payslip.adjustment || 0).toFixed(2)}</td>
+                    <td>${(payslip.finalSalary || 0).toFixed(2)}</td>
+                    <td>${payslip.status || '未确认'}</td>
+                    <td style="text-align: left; padding: 2px 5px;">${payslip.notes || ''}</td>
+                </tr>
+            `;
+        } else {
+             reportHtml += `
+                <tr>
+                    <td>${teacher.id}</td>
+                    <td>${teacher.name}</td>
+                    <td colspan="5">该教师本月无薪资单数据</td>
+                </tr>
+            `;
+        }
+    });
+
+    reportHtml += `
+            </tbody>
+        </table>
+    `;
+
+    if (!hasData && allTeachers.length > 0) {
+         reportView.innerHTML = `<p>在 ${selectedMonth}，所有教师都没有已保存的薪资单数据。</p>`;
+         exportButton.disabled = true;
+    } else {
+        reportView.innerHTML = reportHtml;
+        exportButton.disabled = false; // 有数据，启用导出按钮
+    }
+}
+
+/**
+ * 将当前显示的薪资报表导出为CSV文件
+ */
+function exportPayrollReportAsCSV() {
+    const monthSelect = document.getElementById('payroll-month-select');
+    const selectedMonth = monthSelect.value;
+    const reportView = document.getElementById('payroll-report-view');
+    const table = reportView.querySelector('table');
+
+    if (!table) {
+        alert('没有报表可供导出。请先生成报表。');
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    // 添加UTF-8 BOM，防止Excel打开乱码
+    csvContent += '\uFEFF'; 
+
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => `"${th.textContent}"`).join(',');
+    csvContent += headers + '\r\n';
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const rowData = Array.from(row.querySelectorAll('td')).map(td => {
+            // 如果单元格有colspan属性，需要特殊处理，但这里我们假设它只是简单数据
+            if (td.colSpan > 1) {
+                return `"${td.textContent}"` + ','.repeat(td.colSpan - 1);
+            }
+            // 将内容中的双引号替换为两个双引号，以符合CSV规范
+            const cellText = td.textContent.replace(/"/g, '""');
+            return `"${cellText}"`;
+        }).join(',');
+        csvContent += rowData + '\r\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `薪资报表_${selectedMonth}.csv`);
+    document.body.appendChild(link); // Required for FF
+
+    link.click();
+    document.body.removeChild(link);
 }
